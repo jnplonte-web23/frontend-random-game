@@ -1,17 +1,85 @@
 import type { NextPage } from 'next';
 import { useEffect, useState } from 'react';
 
+import { Container, Card, Text, Grid, Input, Spacer, Button } from '@nextui-org/react';
+
 import Head from 'next/head';
+
+import {
+	Client,
+	PrivateKey,
+	AccountId,
+	AccountBalanceQuery,
+	ContractExecuteTransaction,
+	ContractId,
+} from '@hashgraph/sdk';
 
 import { MainLayout } from '../../layouts';
 
-import styles from '../../styles/about-us.module.css';
+import styles from '../../styles/game.module.css';
 
 const Game: NextPage = () => {
+	const $client = Client.forTestnet();
+
 	const [$loading, $setLoading] = useState(true);
+	const [$playerLimit, $setPlayerLimit] = useState<number>(0);
+	const [$price, $setPrice] = useState<number>(0);
+	const [$address, $setAddress] = useState<string>('');
+	const [$referalAddress, $setReferalAddress] = useState<string>('');
+
+	const handleChange = (_event: any) => {
+		$setReferalAddress(_event.target.value);
+	};
+
+	const getInitData = async () => {
+		const contractId: string = ContractId.fromString(process.env.NEXT_PUBLIC_CONTRACT_ID || '').toString();
+		const priceTransaction = new ContractExecuteTransaction()
+			.setContractId(contractId)
+			.setGas(3000000)
+			.setFunction('getPrice');
+
+		const priceResponse = await priceTransaction.execute($client);
+		const xpriceResponse = await priceResponse.getRecord($client);
+		const xxpriceResponse = await xpriceResponse.contractFunctionResult;
+		if (xxpriceResponse) {
+			$setPrice(Number(xxpriceResponse.getUint256(0)));
+		}
+
+		const playerLimitTransaction = new ContractExecuteTransaction()
+			.setContractId(contractId)
+			.setGas(3000000)
+			.setFunction('getPlayerLimit');
+
+		const playerLimitResponse = await playerLimitTransaction.execute($client);
+		const xplayerLimitResponse = await playerLimitResponse.getRecord($client);
+		const xxplayerLimitResponse = await xplayerLimitResponse.contractFunctionResult;
+		if (xxplayerLimitResponse) {
+			$setPlayerLimit(Number(xxplayerLimitResponse.getUint256(0)));
+		}
+	};
+
+	const getBalance = async (_myAccountId: any) => {
+		const accountBalance = await new AccountBalanceQuery().setAccountId(_myAccountId).execute($client);
+		console.log('balance', Number(accountBalance.hbars.toTinybars()) / 100000000);
+	};
+
+	const joinGame = async () => {
+		console.log($address, $referalAddress);
+	};
 
 	useEffect(() => {
+		const myPrivateKey = PrivateKey.fromString(process.env.NEXT_PUBLIC_TEST_PRIVATE || '');
+		const myAccountId: string = AccountId.fromString(process.env.NEXT_PUBLIC_TEST_ACCOUNT || '').toString();
+		if (myAccountId && myPrivateKey) {
+			$client.setOperator(myAccountId, myPrivateKey);
+			$setAddress(myAccountId);
+
+			getBalance(myAccountId);
+			getInitData();
+		}
+
 		$setLoading(false);
+		// eslint-disable-next-line
 	}, []);
 
 	return (
@@ -23,7 +91,47 @@ const Game: NextPage = () => {
 			</Head>
 
 			<main className={styles.main}>
-				<>{$loading ? 'loading...' : 'GAME'}</>
+				{$loading ? (
+					'loading...'
+				) : (
+					<Container className="container">
+						<Card className="card">
+							<Card.Body>
+								<Text> - PRICE: {$price}</Text>
+								<Text> - PLAYER LIMIT: {$playerLimit}</Text>
+								<Text> - NUMBER OF PLAYERS: 0</Text>
+								<Spacer y={1} />
+								<div className="form">
+									<Spacer y={1} />
+									<Grid.Container gap={2}>
+										<Grid xs={12} md={6}>
+											<Input fullWidth readOnly bordered required labelPlaceholder="Address" initialValue={$address} />
+										</Grid>
+										<Grid xs={12} md={6}>
+											<Input
+												fullWidth
+												clearable
+												bordered
+												required
+												labelPlaceholder="Referal Address"
+												onChange={handleChange}
+												initialValue={$referalAddress}
+											/>
+										</Grid>
+									</Grid.Container>
+									<Spacer y={1} />
+									<Grid.Container gap={2}>
+										<Grid xs={12} md={12}>
+											<Button size="md" className="full_width" auto onPress={joinGame}>
+												JOIN GAME
+											</Button>
+										</Grid>
+									</Grid.Container>
+								</div>
+							</Card.Body>
+						</Card>
+					</Container>
+				)}
 			</main>
 		</MainLayout>
 	);

@@ -54,7 +54,7 @@ const CustomNavbar = (props: IProps) => {
 								color="primary"
 								className="full_width"
 								auto
-								onClick={() => console.log('haspack login here')}
+								onPress={() => console.log('haspack login here')}
 							>
 								SIGN IN USING HASHPACK
 							</Button>
@@ -86,7 +86,7 @@ const CustomNavbar = (props: IProps) => {
 
 				{!account ? (
 					<Navbar.Content>
-						<Button size="sm" color="primary" auto onClick={showSignInModal}>
+						<Button size="sm" color="primary" auto onPress={showSignInModal}>
 							SIGN IN
 						</Button>
 					</Navbar.Content>
