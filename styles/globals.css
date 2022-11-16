@@ -27,6 +27,10 @@ a {
 	width: 100% !important;
 }
 
+.text_center {
+	text-align: center !important;
+}
+
 .not_found {
 	position: relative;
 	z-index: 3;
@@ -103,8 +107,15 @@ a {
 
 .container {
 	min-height: 450px;
+	min-width: 350px;
 }
 
 .card {
 	min-height: 450px;
+}
+
+@media (min-width: 600px) {
+	.container {
+		min-width: 450px;
+	}
 }
