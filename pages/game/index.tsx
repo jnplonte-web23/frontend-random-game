@@ -11,7 +11,9 @@ import {
 	AccountId,
 	AccountBalanceQuery,
 	ContractExecuteTransaction,
+	ContractFunctionParameters,
 	ContractId,
+	Hbar,
 } from '@hashgraph/sdk';
 
 import { MainLayout } from '../../layouts';
@@ -25,11 +27,11 @@ const Game: NextPage = () => {
 	const [$playerLimit, $setPlayerLimit] = useState<number>(0);
 	const [$price, $setPrice] = useState<number>(0);
 	const [$address, $setAddress] = useState<string>('');
-	const [$referalAddress, $setReferalAddress] = useState<string>('');
+	// const [$referalAddress, $setReferalAddress] = useState<string>('');
 
-	const handleChange = (_event: any) => {
-		$setReferalAddress(_event.target.value);
-	};
+	// const handleChangeReferalAddress = (_event: any) => {
+	// 	$setReferalAddress(_event.target.value);
+	// };
 
 	const getInitData = async () => {
 		const contractId: string = ContractId.fromString(process.env.NEXT_PUBLIC_CONTRACT_ID || '').toString();
@@ -64,7 +66,20 @@ const Game: NextPage = () => {
 	};
 
 	const joinGame = async () => {
-		console.log($address, $referalAddress);
+		const contractId: string = ContractId.fromString(process.env.NEXT_PUBLIC_CONTRACT_ID || '').toString();
+		const param = new ContractFunctionParameters();
+		param.addAddress('0000000000000000000000000000000002E80425');
+		const playerTransaction = new ContractExecuteTransaction()
+			.setContractId(contractId)
+			.setGas(300000)
+			.setPayableAmount(new Hbar(100))
+			.setFunction('setPlayerData', param);
+
+		const playerLimitResponse = await playerTransaction.execute($client);
+		const receipt = await playerLimitResponse.getReceipt($client);
+		const transactionStatus = receipt.status;
+
+		console.log('The transaction status is ', transactionStatus);
 	};
 
 	useEffect(() => {
@@ -104,20 +119,20 @@ const Game: NextPage = () => {
 								<div className="form">
 									<Spacer y={1} />
 									<Grid.Container gap={2}>
-										<Grid xs={12} md={6}>
+										<Grid xs={12} md={12}>
 											<Input fullWidth readOnly bordered required labelPlaceholder="Address" initialValue={$address} />
 										</Grid>
-										<Grid xs={12} md={6}>
+										{/* <Grid xs={12} md={6}>
 											<Input
 												fullWidth
 												clearable
 												bordered
 												required
 												labelPlaceholder="Referal Address"
-												onChange={handleChange}
+												onChange={handleChangeReferalAddress}
 												initialValue={$referalAddress}
 											/>
-										</Grid>
+										</Grid> */}
 									</Grid.Container>
 									<Spacer y={1} />
 									<Grid.Container gap={2}>
