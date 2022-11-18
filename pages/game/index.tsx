@@ -129,10 +129,12 @@ const Game: NextPage = () => {
 			.freezeWithSigner(signer);
 
 		const playerResponse = await (await playerTransaction).executeWithSigner(signer);
-		if (playerResponse.transactionHash) {
+		if (playerResponse && playerResponse.transactionHash) {
 			toast('JOIN SUCCESS');
 			getBalance();
 			getPlayerCount();
+		} else {
+			toast('JOIN FAILED');
 		}
 
 		$setContractLoading(false);
@@ -140,18 +142,10 @@ const Game: NextPage = () => {
 
 	useEffect(() => {
 		if (pairingData) {
-			const myPrivateKey: string = PrivateKey.fromString(process.env.NEXT_PUBLIC_TEST_PRIVATE || '').toString();
-			const myAccountId: string = AccountId.fromString(process.env.NEXT_PUBLIC_TEST_ACCOUNT || '').toString();
-			if (myAccountId && myPrivateKey) {
-				$$client.setOperator(myAccountId, myPrivateKey);
-				$setAddress(myAccountId);
-			}
+			$setAddress(pairingData?.accountIds.reduce($helper.conCatAccounts));
 		} else {
 			$setAddress('');
 		}
-
-		$setLoading(false);
-		$setContractLoading(false);
 		// eslint-disable-next-line
 	}, [pairingData]);
 
@@ -161,7 +155,19 @@ const Game: NextPage = () => {
 			getInitData();
 		}
 		// eslint-disable-next-line
-	}, [pairingData, $address]);
+	}, [$address]);
+
+	useEffect(() => {
+		const myPrivateKey: string = PrivateKey.fromString(process.env.NEXT_PUBLIC_TEST_PRIVATE || '').toString();
+		const myAccountId: string = AccountId.fromString(process.env.NEXT_PUBLIC_TEST_ACCOUNT || '').toString();
+		if (myAccountId && myPrivateKey) {
+			$$client.setOperator(myAccountId, myPrivateKey);
+		}
+
+		$setContractLoading(false);
+		$setLoading(false);
+		// eslint-disable-next-line
+	}, []);
 
 	return (
 		<MainLayout>
@@ -182,6 +188,7 @@ const Game: NextPage = () => {
 								<Text> - PRICE: {$price}</Text>
 								<Text> - PLAYER LIMIT: {$playerLimit}</Text>
 								<Text> - NUMBER OF PLAYERS: {$playerCount}</Text>
+								<Text> - {process.env.NEXT_PUBLIC_TEST_ACCOUNT || ''}</Text>
 								<Spacer y={1} />
 								{/* <Button size="md" className="full_width" auto onPress={startGame}>
 									START GAME
