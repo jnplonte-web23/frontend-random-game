@@ -5,20 +5,36 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Navbar, Dropdown, Link, Text, Avatar, Modal, Button, Grid } from '@nextui-org/react';
 
-import useStorage from '../../../hooks/useStorage.hook';
-
 import { Helper } from '../../../services/helper/helper.service';
 
+import useHashpack from '../../../hooks/useHashpack.hook';
+import { GetHashPackInformation } from '../../../providers/hashpack.provider';
+
 const CustomNavbar = (props: IProps) => {
-	const { className, account } = props;
+	const { className } = props;
+
+	const { pairingString, pairingData, state, topic, network, hashconnect } = GetHashPackInformation();
+	const { connectToExtension, disconnect } = useHashpack();
 
 	const $helper: Helper = useMemo(() => new Helper(), []);
 
 	const $router = useRouter();
-	const { getItem } = useStorage();
 
 	const [$visible, $setVisible] = useState(false);
-	const [$loginType, $setLoginType] = useState('');
+
+	const handleCopy = () => {
+		navigator.clipboard.writeText(pairingString!);
+	};
+
+	const handleClick = () => {
+		if (!pairingData) {
+			connectToExtension();
+		} else if (pairingData) {
+			disconnect();
+		} else {
+			alert('Please install hashpack wallet extension first. from chrome web store.');
+		}
+	};
 
 	const checkIfActive = useCallback(
 		(_route: string): boolean => {
@@ -30,14 +46,6 @@ const CustomNavbar = (props: IProps) => {
 	const showSignInModal = useCallback((): void => $setVisible(true), [$setVisible]);
 	const hideSignInModal = useCallback((): void => $setVisible(false), [$setVisible]);
 
-	useEffect(() => {
-		const isHasPack: string | null = getItem('isHasPackLogIn');
-		if (isHasPack) {
-			$setLoginType('HASHPACK');
-		}
-		// eslint-disable-next-line
-	}, []);
-
 	return (
 		<>
 			<Modal closeButton preventClose aria-labelledby="SIGN IN" open={$visible} onClose={hideSignInModal}>
@@ -48,14 +56,16 @@ const CustomNavbar = (props: IProps) => {
 				</Modal.Header>
 				<Modal.Body>
 					<Grid.Container gap={2} justify="center">
+						<Grid md={8}>
+							<p>{pairingString?.substring(0, 25)}...</p>
+						</Grid>
+						<Grid md={4}>
+							<Button className="full_width" onPress={handleCopy} auto>
+								Copy
+							</Button>
+						</Grid>
 						<Grid md={12}>
-							<Button
-								size="md"
-								color="primary"
-								className="full_width"
-								auto
-								onPress={() => console.log('haspack login here')}
-							>
+							<Button size="md" color="primary" className="full_width" auto onPress={handleClick}>
 								SIGN IN USING HASHPACK
 							</Button>
 						</Grid>
@@ -67,7 +77,7 @@ const CustomNavbar = (props: IProps) => {
 					<Navbar.Toggle showIn="xs" />
 					<Navbar.Brand>
 						<Link color="inherit" href="/">
-							<Text b>WEB23</Text>
+							<span className="no_break">WEB23</span>
 						</Link>
 					</Navbar.Brand>
 					<Navbar.Content activeColor="primary" hideIn="xs" variant="underline">
@@ -84,9 +94,9 @@ const CustomNavbar = (props: IProps) => {
 					</Navbar.Collapse>
 				</Navbar.Content>
 
-				{!account ? (
+				{!pairingData ? (
 					<Navbar.Content>
-						<Button size="sm" color="primary" auto onPress={showSignInModal}>
+						<Button rounded color="primary" auto onPress={showSignInModal}>
 							SIGN IN
 						</Button>
 					</Navbar.Content>
@@ -95,16 +105,21 @@ const CustomNavbar = (props: IProps) => {
 						<Dropdown placement="bottom-right">
 							<Navbar.Item>
 								<Dropdown.Trigger>
-									<Avatar bordered as="button" color="primary" src="/dog.png" />
+									<Button auto color="primary" rounded>
+										USER
+									</Button>
 								</Dropdown.Trigger>
 							</Navbar.Item>
 							<Dropdown.Menu color="primary">
 								<Dropdown.Item textValue="profile" key="profile" css={{ height: '$18' }}>
-									<Text color="inherit">{$loginType} ACCOUNT</Text>
-									<Text color="inherit">{$helper.shorthenAddress(account)}</Text>
+									<Text color="inherit">
+										{pairingData?.accountIds && pairingData?.accountIds.reduce($helper.conCatAccounts)}
+									</Text>
 								</Dropdown.Item>
 								<Dropdown.Item textValue="logout" key="logout" withDivider color="error">
-									LOG OUT
+									<Button light onPress={handleClick}>
+										LOGOUT
+									</Button>
 								</Dropdown.Item>
 							</Dropdown.Menu>
 						</Dropdown>
@@ -117,7 +132,6 @@ const CustomNavbar = (props: IProps) => {
 
 CustomNavbar.propTypes = {
 	className: PropTypes.string,
-	account: PropTypes.string,
 };
 
 export default CustomNavbar;

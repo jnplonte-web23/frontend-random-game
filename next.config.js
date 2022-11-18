@@ -10,5 +10,7 @@ const nextConfig = {
 	// 	};
 	// },
 };
+const withTM = require('next-transpile-modules')(['hashconnect']);
 
 module.exports = nextConfig;
+module.exports = withTM({});

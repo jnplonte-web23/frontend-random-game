@@ -40,4 +40,8 @@ export class Helper {
 	shorthenAddress(address: string): string {
 		return `${address.slice(0, 12)}...${address.slice(address.length - 3, address.length)}`;
 	}
+
+	conCatAccounts = (lastAccs: string, Acc: string) => {
+		return lastAccs + ' ' + Acc;
+	};
 }
