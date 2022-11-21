@@ -9,26 +9,6 @@ const useHashpack = () => {
 		hashconnect.connectToLocalWallet();
 	};
 
-	const sendTransaction = async (
-		trans: Uint8Array,
-		acctToSign: string,
-		return_trans: boolean = false,
-		hideNfts: boolean = false
-	) => {
-		const transaction: MessageTypes.Transaction = {
-			topic: topic!,
-			byteArray: trans,
-
-			metadata: {
-				accountToSign: acctToSign,
-				returnTransaction: return_trans,
-				hideNft: hideNfts,
-			},
-		};
-
-		return await hashconnect.sendTransaction(topic!, transaction);
-	};
-
 	const disconnect = () => {
 		hashconnect.disconnect(pairingData?.topic!);
 		setState!((exState) => ({ ...exState, pairingData: null }))!;
@@ -49,7 +29,7 @@ const useHashpack = () => {
 		setState!((exState) => ({ ...exState, pairingData: null }));
 	};
 
-	return { connectToExtension, sendTransaction, disconnect, requestAccountInfo, clearPairings };
+	return { connectToExtension, disconnect, requestAccountInfo, clearPairings };
 };
 
 export default useHashpack;

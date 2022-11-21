@@ -32,39 +32,52 @@ const Game: NextPage = () => {
 
 	const [$loading, $setLoading] = useState(true);
 	const [$contractLoading, $setContractLoading] = useState(true);
+	const [$gameStart, $setGameStart] = useState(false);
 	const [$playerLimit, $setPlayerLimit] = useState<number>(0);
 	const [$playerCount, $setPlayerCount] = useState<number>(0);
 	const [$balance, $setBalance] = useState<number>(0);
 	const [$price, $setPrice] = useState<number>(0);
 	const [$address, $setAddress] = useState<string>('');
-	const [$referalAddress, $setReferalAddress] = useState<string>('');
+	const [$referalAddress, $setReferalAddress] = useState<string>(process.env.NEXT_PUBLIC_TEST_ACCOUNT || '');
 
 	const handleChangeReferalAddress = (_event: any) => {
 		$setReferalAddress(_event.target.value);
 	};
 
 	const getInitData = async () => {
-		const priceTransaction = new ContractExecuteTransaction()
+		const gameTransaction = new ContractExecuteTransaction()
 			.setContractId(CONTRACTID)
 			.setGas(3000000)
-			.setFunction('getPrice');
-		const priceResponse = await priceTransaction.execute($$client);
-		const xpriceResponse = await priceResponse.getRecord($$client);
-		const xxpriceResponse = await xpriceResponse.contractFunctionResult;
-		if (xxpriceResponse) {
-			$setPrice(Number(xxpriceResponse.getUint256(0)));
+			.setFunction('getGameStart');
+		const gameResponse = await gameTransaction.execute($$client);
+		const xgameResponse = await gameResponse.getRecord($$client);
+		const xxgameResponse = await xgameResponse.contractFunctionResult;
+
+		if (xxgameResponse) {
+			$setGameStart(xxgameResponse.getBool(0));
 		}
 
-		const playerLimitTransaction = new ContractExecuteTransaction()
-			.setContractId(CONTRACTID)
-			.setGas(3000000)
-			.setFunction('getPlayerLimit');
-		const playerLimitResponse = await playerLimitTransaction.execute($$client);
-		const xplayerLimitResponse = await playerLimitResponse.getRecord($$client);
-		const xxplayerLimitResponse = await xplayerLimitResponse.contractFunctionResult;
-		if (xxplayerLimitResponse) {
-			$setPlayerLimit(Number(xxplayerLimitResponse.getUint256(0)));
-		}
+		// const priceTransaction = new ContractExecuteTransaction()
+		// 	.setContractId(CONTRACTID)
+		// 	.setGas(3000000)
+		// 	.setFunction('getPrice');
+		// const priceResponse = await priceTransaction.execute($$client);
+		// const xpriceResponse = await priceResponse.getRecord($$client);
+		// const xxpriceResponse = await xpriceResponse.contractFunctionResult;
+		// if (xxpriceResponse) {
+		// 	$setPrice(Number(xxpriceResponse.getUint256(0)));
+		// }
+
+		// const playerLimitTransaction = new ContractExecuteTransaction()
+		// 	.setContractId(CONTRACTID)
+		// 	.setGas(3000000)
+		// 	.setFunction('getPlayerLimit');
+		// const playerLimitResponse = await playerLimitTransaction.execute($$client);
+		// const xplayerLimitResponse = await playerLimitResponse.getRecord($$client);
+		// const xxplayerLimitResponse = await xplayerLimitResponse.contractFunctionResult;
+		// if (xxplayerLimitResponse) {
+		// 	$setPlayerLimit(Number(xxplayerLimitResponse.getUint256(0)));
+		// }
 
 		getPlayerCount();
 	};
@@ -89,52 +102,86 @@ const Game: NextPage = () => {
 		}
 	};
 
-	// const startGame = async () => {
-	// 	const playerTransaction = new ContractExecuteTransaction()
-	// 		.setContractId(CONTRACTID)
-	// 		.setGas(300000)
-	// 		.setFunction('startGame');
+	const startGame = async () => {
+		const playerTransaction = new ContractExecuteTransaction()
+			.setContractId(CONTRACTID)
+			.setGas(300000)
+			.setFunction('startGame');
 
-	// 	const playerLimitResponse = await playerTransaction.execute($$client);
+		const playerLimitResponse = await playerTransaction.execute($$client);
+		const receipt = await playerLimitResponse.getReceipt($$client);
 
-	// 	//Request the receipt of the transaction
-	// 	const receipt = await playerLimitResponse.getReceipt($$client);
-	// 	//Get the transaction consensus status
-	// 	const transactionStatus = receipt.status;
+		if (Number(receipt.status) === 22) {
+			toast('START GAME');
+			$setGameStart(true);
+		}
+	};
 
-	// 	console.log('The transaction consensus status is ' + transactionStatus);
-	// };
+	const winGame = async () => {
+		try {
+			const playerTransaction = new ContractExecuteTransaction()
+				.setContractId(CONTRACTID)
+				.setGas(300000)
+				.setFunction('setWinner');
+
+			const playerLimitResponse = await playerTransaction.execute($$client);
+			const receipt = await playerLimitResponse.getReceipt($$client);
+
+			if (Number(receipt.status) === 22) {
+				const param = new ContractFunctionParameters();
+				param.addUint8(1);
+				const win1Transaction = new ContractExecuteTransaction()
+					.setContractId(CONTRACTID)
+					.setGas(3000000)
+					.setFunction('getWinnerList', param);
+				const win1Response = await win1Transaction.execute($$client);
+				const xwin1Response = await win1Response.getRecord($$client);
+				const xxwin1Response = await xwin1Response.contractFunctionResult;
+				if (xxwin1Response) {
+					toast(`WINER ${xxwin1Response.getAddress(0)}`);
+				} else {
+					toast('WINNER SUCCESS');
+				}
+			}
+		} catch (error) {
+			toast(`WINNER FAILED`, $helper.toString(error));
+		}
+	};
 
 	const joinGame = async () => {
 		$setContractLoading(true);
 
-		const id = pairingData?.accountIds.reduce($helper.conCatAccounts);
-		const provider = hashconnect.getProvider(network, topic, id);
-		const signer = hashconnect.getSigner(provider);
+		try {
+			const id = pairingData?.accountIds.reduce($helper.conCatAccounts);
+			const provider = hashconnect.getProvider(network, topic, id);
+			const signer = hashconnect.getSigner(provider);
 
-		const param = new ContractFunctionParameters();
-		if ($helper.isNotEmpty($referalAddress)) {
-			const addr = AccountId.fromString($referalAddress).toString();
-			const addrArr = addr.split('.');
-			const addrNum: number = Number(addrArr[2]);
-			const addrFinal: string = `000000000000000000000000000000000${addrNum.toString(16).toUpperCase()}`;
-			param.addAddress(addrFinal);
-		}
+			const param = new ContractFunctionParameters();
+			if ($helper.isNotEmpty($referalAddress)) {
+				const addr = AccountId.fromString($referalAddress).toString();
+				const addrArr = addr.split('.');
+				const addrNum: number = Number(addrArr[2]);
+				const addrFinal: string = `000000000000000000000000000000000${addrNum.toString(16).toUpperCase()}`;
+				param.addAddress(addrFinal);
+			}
 
-		const playerTransaction = new ContractExecuteTransaction()
-			.setContractId(CONTRACTID)
-			.setGas(300000)
-			.setPayableAmount(new Hbar(100))
-			.setFunction('setPlayerData', param)
-			.freezeWithSigner(signer);
+			const playerTransaction = new ContractExecuteTransaction()
+				.setContractId(CONTRACTID)
+				.setGas(300000)
+				.setPayableAmount(new Hbar(100))
+				.setFunction('setPlayerData', param)
+				.freezeWithSigner(signer);
 
-		const playerResponse = await (await playerTransaction).executeWithSigner(signer);
-		if (playerResponse && playerResponse.transactionHash) {
-			toast('JOIN SUCCESS');
-			getBalance();
-			getPlayerCount();
-		} else {
-			toast('JOIN FAILED');
+			const playerResponse = await (await playerTransaction).executeWithSigner(signer);
+			if (playerResponse && playerResponse.transactionHash) {
+				toast('JOIN SUCCESS');
+				getBalance();
+				getPlayerCount();
+			} else {
+				toast('JOIN FAILED');
+			}
+		} catch (error) {
+			toast(`JOIN FAILED`, $helper.toString(error));
 		}
 
 		$setContractLoading(false);
@@ -152,7 +199,6 @@ const Game: NextPage = () => {
 	useEffect(() => {
 		if (pairingData) {
 			getBalance();
-			getInitData();
 		}
 		// eslint-disable-next-line
 	}, [$address]);
@@ -162,6 +208,7 @@ const Game: NextPage = () => {
 		const myAccountId: string = AccountId.fromString(process.env.NEXT_PUBLIC_TEST_ACCOUNT || '').toString();
 		if (myAccountId && myPrivateKey) {
 			$$client.setOperator(myAccountId, myPrivateKey);
+			getInitData();
 		}
 
 		$setContractLoading(false);
@@ -188,11 +235,18 @@ const Game: NextPage = () => {
 								<Text> - PRICE: {$price}</Text>
 								<Text> - PLAYER LIMIT: {$playerLimit}</Text>
 								<Text> - NUMBER OF PLAYERS: {$playerCount}</Text>
-								<Text> - {process.env.NEXT_PUBLIC_TEST_ACCOUNT || ''}</Text>
 								<Spacer y={1} />
-								{/* <Button size="md" className="full_width" auto onPress={startGame}>
-									START GAME
-								</Button> */}
+								{!$gameStart ? (
+									<Button size="md" className="full_width" auto onPress={startGame}>
+										START GAME
+									</Button>
+								) : (
+									'GAME STARTED'
+								)}
+								<Spacer y={1} />
+								<Button size="md" className="full_width" auto onPress={winGame}>
+									WIN GAME
+								</Button>
 								<Spacer y={1} />
 								<div className="form">
 									<Spacer y={1} />
