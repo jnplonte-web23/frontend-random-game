@@ -2,6 +2,7 @@ import type { NextPage } from 'next';
 import { useEffect, useState } from 'react';
 
 import Head from 'next/head';
+import { Container } from '@nextui-org/react';
 
 import { MainLayout } from '../layouts';
 
@@ -17,14 +18,12 @@ const Index: NextPage = () => {
 	return (
 		<MainLayout>
 			<Head>
-				<title>RANDOM GAME | Home</title>
+				<title>RANDOM GAME | HOME</title>
 				<meta name="description" content="home" />
-				<link rel="shortcut icon" href="/" />
+				<link rel="shortcut icon" href="/favicon.ico" />
 			</Head>
 
-			<main className={styles.main}>
-				<>{$loading ? 'loading...' : 'HOME'}</>
-			</main>
+			<main className={styles.main}>{$loading ? 'loading...' : <Container className="container">HOME</Container>}</main>
 		</MainLayout>
 	);
 };

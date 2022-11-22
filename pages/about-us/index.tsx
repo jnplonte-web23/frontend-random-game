@@ -17,9 +17,8 @@ const AboutUs: NextPage = () => {
 	return (
 		<MainLayout>
 			<Head>
-				<title>RANDOM GAME | About Us</title>
+				<title>RANDOM GAME | ABOUT US</title>
 				<meta name="description" content="about us" />
-				<link rel="shortcut icon" href="/" />
 			</Head>
 
 			<main className={styles.main}>
