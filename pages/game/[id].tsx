@@ -25,9 +25,6 @@ import { GetHashPackInformation } from '../../providers/hashpack.provider';
 
 import styles from '../../styles/game.module.css';
 
-const $$client = Client.forTestnet();
-const CONTRACTID: string = ContractId.fromString(process.env.NEXT_PUBLIC_CONTRACT_ID || '').toString();
-
 const COLUMNS = [
 	{ name: '#', id: 'no' },
 	{ name: 'WALLET ID', id: 'id' },
@@ -66,6 +63,8 @@ const WINNERS = [
 	},
 ];
 
+const $$client = Client.forTestnet();
+const CONTRACTID: string = ContractId.fromString(process.env.NEXT_PUBLIC_CONTRACT_ID || '').toString();
 const GameSelect: NextPage = () => {
 	const $router = useRouter();
 	const { id } = $router.query;
@@ -93,16 +92,17 @@ const GameSelect: NextPage = () => {
 	};
 
 	const getInitData = async () => {
-		// const gameTransaction = new ContractExecuteTransaction()
-		// 	.setContractId(CONTRACTID)
-		// 	.setGas(3000000)
-		// 	.setFunction('getGameStart');
-		// const gameResponse = await gameTransaction.execute($$client);
-		// const xgameResponse = await gameResponse.getRecord($$client);
-		// const xxgameResponse = await xgameResponse.contractFunctionResult;
-		// if (xxgameResponse) {
-		// 	$setGameStart(xxgameResponse.getBool(0));
-		// }
+		const gameTransaction = new ContractExecuteTransaction()
+			.setContractId(CONTRACTID)
+			.setGas(3000000)
+			.setFunction('isGameStart');
+		const gameResponse = await gameTransaction.execute($$client);
+		const xgameResponse = await gameResponse.getRecord($$client);
+		const xxgameResponse = await xgameResponse.contractFunctionResult;
+		if (xxgameResponse) {
+			$setGameStart(xxgameResponse.getBool(0));
+		}
+
 		// const priceTransaction = new ContractExecuteTransaction()
 		// 	.setContractId(CONTRACTID)
 		// 	.setGas(3000000)
@@ -126,108 +126,110 @@ const GameSelect: NextPage = () => {
 		// getPlayerCount();
 	};
 
-	const getPlayerCount = async () => {
-		const playerCountTransaction = new ContractExecuteTransaction()
-			.setContractId(CONTRACTID)
-			.setGas(3000000)
-			.setFunction('getPlayerCount');
-		const playerCountResponse = await playerCountTransaction.execute($$client);
-		const xplayerCountResponse = await playerCountResponse.getRecord($$client);
-		const xxplayerCountResponse = await xplayerCountResponse.contractFunctionResult;
-		if (xxplayerCountResponse) {
-			$setPlayerCount(Number(xxplayerCountResponse.getUint256(0)));
-		}
-	};
-
-	const getBalance = async () => {
-		if ($address) {
-			const accountBalance = await new AccountBalanceQuery().setAccountId($address).execute($$client);
-			$setBalance(Number(accountBalance.hbars.toTinybars()) / 100000000);
-		}
-	};
-
-	// const startGame = async () => {
-	// 	const playerTransaction = new ContractExecuteTransaction()
+	// const getPlayerCount = async () => {
+	// 	const playerCountTransaction = new ContractExecuteTransaction()
 	// 		.setContractId(CONTRACTID)
-	// 		.setGas(300000)
-	// 		.setFunction('startGame');
-
-	// 	const playerLimitResponse = await playerTransaction.execute($$client);
-	// 	const receipt = await playerLimitResponse.getReceipt($$client);
-
-	// 	if (Number(receipt.status) === 22) {
-	// 		toast('START GAME');
-	// 		$setGameStart(true);
+	// 		.setGas(3000000)
+	// 		.setFunction('getPlayerCount');
+	// 	const playerCountResponse = await playerCountTransaction.execute($$client);
+	// 	const xplayerCountResponse = await playerCountResponse.getRecord($$client);
+	// 	const xxplayerCountResponse = await xplayerCountResponse.contractFunctionResult;
+	// 	if (xxplayerCountResponse) {
+	// 		$setPlayerCount(Number(xxplayerCountResponse.getUint256(0)));
 	// 	}
 	// };
 
-	// const winGame = async () => {
-	// 	try {
-	// 		const playerTransaction = new ContractExecuteTransaction()
-	// 			.setContractId(CONTRACTID)
-	// 			.setGas(300000)
-	// 			.setFunction('setWinner');
+	const startGame = async () => {
+		try {
+			const param = new ContractFunctionParameters();
+			param.addUint256(10);
+			const playerTransaction = new ContractExecuteTransaction()
+				.setContractId(CONTRACTID)
+				.setGas(300000)
+				.setFunction('startGame', param);
 
-	// 		const playerLimitResponse = await playerTransaction.execute($$client);
-	// 		const receipt = await playerLimitResponse.getReceipt($$client);
+			const playerResponse = await playerTransaction.execute($$client);
+			const receipt = await playerResponse.getReceipt($$client);
 
-	// 		if (Number(receipt.status) === 22) {
-	// 			const param = new ContractFunctionParameters();
-	// 			param.addUint8(1);
-	// 			const win1Transaction = new ContractExecuteTransaction()
-	// 				.setContractId(CONTRACTID)
-	// 				.setGas(3000000)
-	// 				.setFunction('getWinnerList', param);
-	// 			const win1Response = await win1Transaction.execute($$client);
-	// 			const xwin1Response = await win1Response.getRecord($$client);
-	// 			const xxwin1Response = await xwin1Response.contractFunctionResult;
-	// 			if (xxwin1Response) {
-	// 				toast(`WINER ${xxwin1Response.getAddress(0)}`);
-	// 			} else {
-	// 				toast('WINNER SUCCESS');
-	// 			}
-	// 		}
-	// 	} catch (error) {
-	// 		toast(`WINNER FAILED`, $helper.toString(error));
-	// 	}
-	// };
+			if (Number(receipt.status) === 22) {
+				toast('START GAME');
+				$setGameStart(true);
+			}
+		} catch (error) {
+			toast(`START FAILED`, $helper.toString(error));
+		}
+	};
+
+	const winGame = async () => {
+		try {
+			const param = new ContractFunctionParameters();
+			param.addUint8(1);
+			const winnerTransaction = new ContractExecuteTransaction()
+				.setContractId(CONTRACTID)
+				.setGas(300000)
+				.setFunction('setWinner', param);
+
+			const winnerResponse = await winnerTransaction.execute($$client);
+			console.log(winnerResponse, '<<<');
+
+			const receipt = await winnerResponse.getReceipt($$client);
+
+			if (Number(receipt.status) === 22) {
+				toast('WINNER SUCCESS');
+				// const param = new ContractFunctionParameters();
+				// param.addUint8(1);
+				// const win1Transaction = new ContractExecuteTransaction()
+				// 	.setContractId(CONTRACTID)
+				// 	.setGas(3000000)
+				// 	.setFunction('getWinnerList', param);
+				// const win1Response = await win1Transaction.execute($$client);
+				// const xwin1Response = await win1Response.getRecord($$client);
+				// const xxwin1Response = await xwin1Response.contractFunctionResult;
+				// if (xxwin1Response) {
+				// 	toast(`WINER ${xxwin1Response.getAddress(0)}`);
+				// } else {
+				// 	toast('WINNER SUCCESS');
+				// }
+			}
+		} catch (error) {
+			toast(`WINNER FAILED`, $helper.toString(error));
+		}
+	};
 
 	const joinGame = async () => {
 		$setContractLoading(true);
 
-		console.log('JOIN');
-		// try {
-		// 	const id = pairingData?.accountIds.reduce($helper.conCatAccounts);
-		// 	const provider = hashconnect.getProvider(network, topic, id);
-		// 	const signer = hashconnect.getSigner(provider);
+		try {
+			const id = pairingData?.accountIds.reduce($helper.conCatAccounts);
+			const provider = hashconnect.getProvider(network, topic, id);
+			const signer = hashconnect.getSigner(provider);
 
-		// 	const param = new ContractFunctionParameters();
-		// 	if ($helper.isNotEmpty($referalAddress)) {
-		// 		const addr = AccountId.fromString($referalAddress).toString();
-		// 		const addrArr = addr.split('.');
-		// 		const addrNum: number = Number(addrArr[2]);
-		// 		const addrFinal: string = `000000000000000000000000000000000${addrNum.toString(16).toUpperCase()}`;
-		// 		param.addAddress(addrFinal);
-		// 	}
+			const param = new ContractFunctionParameters();
+			param.addUint8(Number($numberOfEntries));
+			if ($helper.isNotEmpty($referalAddress)) {
+				const addr = AccountId.fromString($referalAddress).toString();
+				const addrArr = addr.split('.');
+				const addrNum: number = Number(addrArr[2]);
+				const addrFinal: string = `000000000000000000000000000000000${addrNum.toString(16).toUpperCase()}`;
+				param.addAddress(addrFinal);
+			}
 
-		// 	const playerTransaction = new ContractExecuteTransaction()
-		// 		.setContractId(CONTRACTID)
-		// 		.setGas(300000)
-		// 		.setPayableAmount(new Hbar(100))
-		// 		.setFunction('setPlayerData', param)
-		// 		.freezeWithSigner(signer);
+			const playerTransaction = new ContractExecuteTransaction()
+				.setContractId(CONTRACTID)
+				.setGas(300000)
+				.setPayableAmount(new Hbar(100))
+				.setFunction('setPlayerData', param)
+				.freezeWithSigner(signer);
 
-		// 	const playerResponse = await (await playerTransaction).executeWithSigner(signer);
-		// 	if (playerResponse && playerResponse.transactionHash) {
-		// 		toast('JOIN SUCCESS');
-		// 		getBalance();
-		// 		getPlayerCount();
-		// 	} else {
-		// 		toast('JOIN FAILED');
-		// 	}
-		// } catch (error) {
-		// 	toast(`JOIN FAILED`, $helper.toString(error));
-		// }
+			const playerResponse = await (await playerTransaction).executeWithSigner(signer);
+			if (playerResponse && playerResponse.transactionHash) {
+				toast('JOIN SUCCESS');
+			} else {
+				toast('JOIN FAILED');
+			}
+		} catch (error) {
+			toast(`JOIN FAILED`, $helper.toString(error));
+		}
 
 		$setContractLoading(false);
 	};
@@ -239,7 +241,6 @@ const GameSelect: NextPage = () => {
 			$setAddress('');
 		}
 
-		getBalance();
 		// eslint-disable-next-line
 	}, [pairingData]);
 
@@ -323,14 +324,29 @@ const GameSelect: NextPage = () => {
 														onChange={handleChangeReferalAddress}
 													/>
 												</Grid>
+
 												<Grid xs={12} lg={6}>
-													{$contractLoading ? (
-														<div className="full_width text_center">
-															<Loading type="points" size="xl" />
-														</div>
+													{$gameStart ? (
+														<>
+															{$contractLoading ? (
+																<div className="full_width text_center">
+																	<Loading type="points" size="xl" />
+																</div>
+															) : (
+																<Button
+																	className="full_width"
+																	size="lg"
+																	auto
+																	onPress={joinGame}
+																	disabled={!pairingData}
+																>
+																	JOIN GAME
+																</Button>
+															)}
+														</>
 													) : (
-														<Button className="full_width" size="lg" auto onPress={joinGame}>
-															JOIN GAME
+														<Button className="full_width" size="lg" auto onPress={startGame}>
+															START GAME
 														</Button>
 													)}
 												</Grid>
@@ -356,6 +372,10 @@ const GameSelect: NextPage = () => {
 											elementum nisl accumsan. Duis posuere pretium placerat. Aliquam lacus diam, accumsan ac sem
 											elementum, venenatis rhoncus tellus. Nulla viverra accumsan magna quis imperdiet...
 										</Text>
+										<Spacer y={1} />
+										<Button className="full_width" size="lg" auto onPress={winGame}>
+											WIN GAME
+										</Button>
 									</Card.Body>
 								</Card>
 							</Grid>

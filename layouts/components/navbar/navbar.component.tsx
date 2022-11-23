@@ -5,11 +5,15 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Navbar, Dropdown, Link, Text, Avatar, Modal, Button, Grid } from '@nextui-org/react';
 
+import { Client, PrivateKey, AccountId, AccountBalanceQuery, ContractId } from '@hashgraph/sdk';
+
 import { Helper } from '../../../services/helper/helper.service';
 
 import useHashpack from '../../../hooks/useHashpack.hook';
 import { GetHashPackInformation } from '../../../providers/hashpack.provider';
 
+const $$client = Client.forTestnet();
+const CONTRACTID: string = ContractId.fromString(process.env.NEXT_PUBLIC_CONTRACT_ID || '').toString();
 const CustomNavbar = (props: IProps) => {
 	const { className } = props;
 
@@ -21,6 +25,14 @@ const CustomNavbar = (props: IProps) => {
 	const $router = useRouter();
 
 	const [$visible, $setVisible] = useState(false);
+	const [$balance, $setBalance] = useState<number>(0);
+
+	const getBalance = async () => {
+		const accountId: string =
+			pairingData && pairingData.accountIds ? pairingData.accountIds.reduce($helper.conCatAccounts) : '';
+		const accountBalance = await new AccountBalanceQuery().setAccountId(accountId).execute($$client);
+		$setBalance(Number(accountBalance.hbars.toTinybars()) / 100000000);
+	};
 
 	const handleCopy = () => {
 		navigator.clipboard.writeText(pairingString!);
@@ -45,6 +57,24 @@ const CustomNavbar = (props: IProps) => {
 
 	const showSignInModal = useCallback((): void => $setVisible(true), [$setVisible]);
 	const hideSignInModal = useCallback((): void => $setVisible(false), [$setVisible]);
+
+	useEffect(() => {
+		if (pairingData) {
+			getBalance();
+		}
+
+		// eslint-disable-next-line
+	}, [pairingData]);
+
+	useEffect(() => {
+		const myPrivateKey: string = PrivateKey.fromString(process.env.NEXT_PUBLIC_TEST_PRIVATE || '').toString();
+		const myAccountId: string = AccountId.fromString(process.env.NEXT_PUBLIC_TEST_ACCOUNT || '').toString();
+		if (myAccountId && myPrivateKey) {
+			$$client.setOperator(myAccountId, myPrivateKey);
+		}
+
+		// eslint-disable-next-line
+	}, []);
 
 	return (
 		<>
@@ -112,8 +142,9 @@ const CustomNavbar = (props: IProps) => {
 							</Navbar.Item>
 							<Dropdown.Menu color="primary">
 								<Dropdown.Item textValue="profile" key="profile" css={{ height: '$18' }}>
+									<Text color="inherit">BALANCE: {$balance}</Text>
 									<Text color="inherit">
-										{pairingData?.accountIds && pairingData?.accountIds.reduce($helper.conCatAccounts)}
+										ACCOUNT ID: {pairingData?.accountIds && pairingData?.accountIds.reduce($helper.conCatAccounts)}
 									</Text>
 								</Dropdown.Item>
 								<Dropdown.Item textValue="logout" key="logout" withDivider color="error">
