@@ -82,8 +82,12 @@ const GameSelect: NextPage = () => {
 	const [$balance, $setBalance] = useState<number>(0);
 	const [$price, $setPrice] = useState<number>(0);
 	const [$address, $setAddress] = useState<string>('');
+	const [$numberOfEntries, $setNumberOfEntries] = useState<number>(1);
 	const [$referalAddress, $setReferalAddress] = useState<string>(process.env.NEXT_PUBLIC_TEST_ACCOUNT || '');
 
+	const handleChangeNumberOfEntries = (_event: any) => {
+		$setNumberOfEntries(Number(_event.target.value));
+	};
 	const handleChangeReferalAddress = (_event: any) => {
 		$setReferalAddress(_event.target.value);
 	};
@@ -282,7 +286,7 @@ const GameSelect: NextPage = () => {
 										RANDOM GAME {id}
 									</Text>
 									<Text h4 color="white">
-										PLAYERS JOIN 35 / 100
+										PLAYERS JOIN: 35 / 100
 									</Text>
 									<Card>
 										<Card.Body>
@@ -294,16 +298,43 @@ const GameSelect: NextPage = () => {
 											<Text b h4>
 												JOINING FEE: 100 HBAR
 											</Text>
-											<Spacer y={3} />
-											{$contractLoading ? (
-												<div className="full_width text_center">
-													<Loading type="points" size="xl" />
-												</div>
-											) : (
-												<Button size="lg" auto onPress={joinGame}>
-													JOIN GAME
-												</Button>
-											)}
+											<Spacer y={2} />
+											<Grid.Container gap={2}>
+												<Grid xs={6} lg={3}>
+													<Input
+														aria-label="numberOfEntries"
+														min="1"
+														width="100%"
+														bordered
+														labelPlaceholder="number of entries"
+														type="number"
+														value={$numberOfEntries}
+														onChange={handleChangeNumberOfEntries}
+													/>
+												</Grid>
+												<Grid xs={6} lg={3}>
+													<Input
+														aria-label="referalAddress"
+														width="100%"
+														clearable
+														bordered
+														labelPlaceholder="referal address"
+														value={$referalAddress}
+														onChange={handleChangeReferalAddress}
+													/>
+												</Grid>
+												<Grid xs={12} lg={6}>
+													{$contractLoading ? (
+														<div className="full_width text_center">
+															<Loading type="points" size="xl" />
+														</div>
+													) : (
+														<Button className="full_width" size="lg" auto onPress={joinGame}>
+															JOIN GAME
+														</Button>
+													)}
+												</Grid>
+											</Grid.Container>
 										</Card.Body>
 									</Card>
 								</Col>
@@ -350,7 +381,7 @@ const GameSelect: NextPage = () => {
 									<Card.Divider />
 									<Card.Body>
 										<div className={styles.table}>
-											<Table fixed>
+											<Table fixed aria-label="winnerTable">
 												<Table.Header columns={COLUMNS}>
 													{(column) => (
 														<Table.Column key={column.id} align="start">
