@@ -2,6 +2,7 @@ import type { NextPage } from 'next';
 import { useEffect, useState } from 'react';
 
 import Head from 'next/head';
+import { Container } from '@nextui-org/react';
 
 import { MainLayout } from '../../layouts';
 
@@ -22,7 +23,7 @@ const AboutUs: NextPage = () => {
 			</Head>
 
 			<main className={styles.main}>
-				<>{$loading ? 'loading...' : 'ABOUT US'}</>
+				{$loading ? 'loading...' : <Container className="container">ABOUT US</Container>}
 			</main>
 		</MainLayout>
 	);

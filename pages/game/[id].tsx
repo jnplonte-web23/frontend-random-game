@@ -2,7 +2,7 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useEffect, useState, useMemo } from 'react';
 
-import { Container, Card, Text, Grid, User, Input, Spacer, Button, Loading, Col, Row, Table } from '@nextui-org/react';
+import { Container, Card, Text, Grid, User, Input, Spacer, Button, Loading, Col, Table } from '@nextui-org/react';
 import { toast } from 'react-toastify';
 
 import Head from 'next/head';
@@ -11,7 +11,6 @@ import {
 	Client,
 	PrivateKey,
 	AccountId,
-	AccountBalanceQuery,
 	ContractExecuteTransaction,
 	ContractFunctionParameters,
 	ContractId,
@@ -68,7 +67,6 @@ const CONTRACTID: string = ContractId.fromString(process.env.NEXT_PUBLIC_CONTRAC
 const GameSelect: NextPage = () => {
 	const $router = useRouter();
 	const { id } = $router.query;
-	console.log(id, '<<<< GAME ID');
 
 	const $helper: Helper = useMemo(() => new Helper(), []);
 	const { pairingData, network, topic, hashconnect } = GetHashPackInformation();
@@ -78,7 +76,6 @@ const GameSelect: NextPage = () => {
 	const [$gameStart, $setGameStart] = useState(false);
 	const [$playerLimit, $setPlayerLimit] = useState<number>(0);
 	const [$playerCount, $setPlayerCount] = useState<number>(0);
-	const [$balance, $setBalance] = useState<number>(0);
 	const [$price, $setPrice] = useState<number>(0);
 	const [$address, $setAddress] = useState<string>('');
 	const [$numberOfEntries, $setNumberOfEntries] = useState<number>(1);
@@ -139,63 +136,6 @@ const GameSelect: NextPage = () => {
 	// 	}
 	// };
 
-	const startGame = async () => {
-		try {
-			const param = new ContractFunctionParameters();
-			param.addUint256(10);
-			const playerTransaction = new ContractExecuteTransaction()
-				.setContractId(CONTRACTID)
-				.setGas(300000)
-				.setFunction('startGame', param);
-
-			const playerResponse = await playerTransaction.execute($$client);
-			const receipt = await playerResponse.getReceipt($$client);
-
-			if (Number(receipt.status) === 22) {
-				toast('START GAME');
-				$setGameStart(true);
-			}
-		} catch (error) {
-			toast(`START FAILED`, $helper.toString(error));
-		}
-	};
-
-	const winGame = async () => {
-		try {
-			const param = new ContractFunctionParameters();
-			param.addUint8(1);
-			const winnerTransaction = new ContractExecuteTransaction()
-				.setContractId(CONTRACTID)
-				.setGas(300000)
-				.setFunction('setWinner', param);
-
-			const winnerResponse = await winnerTransaction.execute($$client);
-			console.log(winnerResponse, '<<<');
-
-			const receipt = await winnerResponse.getReceipt($$client);
-
-			if (Number(receipt.status) === 22) {
-				toast('WINNER SUCCESS');
-				// const param = new ContractFunctionParameters();
-				// param.addUint8(1);
-				// const win1Transaction = new ContractExecuteTransaction()
-				// 	.setContractId(CONTRACTID)
-				// 	.setGas(3000000)
-				// 	.setFunction('getWinnerList', param);
-				// const win1Response = await win1Transaction.execute($$client);
-				// const xwin1Response = await win1Response.getRecord($$client);
-				// const xxwin1Response = await xwin1Response.contractFunctionResult;
-				// if (xxwin1Response) {
-				// 	toast(`WINER ${xxwin1Response.getAddress(0)}`);
-				// } else {
-				// 	toast('WINNER SUCCESS');
-				// }
-			}
-		} catch (error) {
-			toast(`WINNER FAILED`, $helper.toString(error));
-		}
-	};
-
 	const joinGame = async () => {
 		$setContractLoading(true);
 
@@ -209,9 +149,8 @@ const GameSelect: NextPage = () => {
 			if ($helper.isNotEmpty($referalAddress)) {
 				const addr = AccountId.fromString($referalAddress).toString();
 				const addrArr = addr.split('.');
-				const addrNum: number = Number(addrArr[2]);
-				const addrFinal: string = `000000000000000000000000000000000${addrNum.toString(16).toUpperCase()}`;
-				param.addAddress(addrFinal);
+				const addrNum = new AccountId(parseInt(addrArr[0]), parseInt(addrArr[1]), parseInt(addrArr[3]));
+				param.addAddress(addrNum.toSolidityAddress());
 			}
 
 			const playerTransaction = new ContractExecuteTransaction()
@@ -273,10 +212,10 @@ const GameSelect: NextPage = () => {
 							<Grid xs={12} lg={4}>
 								<Card>
 									<Card.Image
-										src="https://api.lorem.space/image/car?w=300&h=400&hash=8B7BCDC0"
+										src="https://api.lorem.space/image/car?w=300&h=450&hash=8B7BCDC0"
 										objectFit="cover"
 										width="100%"
-										height={400}
+										height={450}
 										alt="Card image background"
 									/>
 								</Card>
@@ -291,15 +230,17 @@ const GameSelect: NextPage = () => {
 									</Text>
 									<Card>
 										<Card.Body>
-											<Text b>GAME ENDS IN November 30, 2022</Text>
+											<Text b h3>
+												GAME ENDS IN November 30, 2022
+											</Text>
 											<Text>00 : 00 : 00</Text>
 											<Spacer y={1} />
 											<Card.Divider />
 											<Spacer y={1} />
-											<Text b h4>
+											<Text b h3>
 												JOINING FEE: 100 HBAR
 											</Text>
-											<Spacer y={2} />
+											<Spacer y={3} />
 											<Grid.Container gap={2}>
 												<Grid xs={6} lg={3}>
 													<Input
@@ -326,27 +267,19 @@ const GameSelect: NextPage = () => {
 												</Grid>
 
 												<Grid xs={12} lg={6}>
-													{$gameStart ? (
-														<>
-															{$contractLoading ? (
-																<div className="full_width text_center">
-																	<Loading type="points" size="xl" />
-																</div>
-															) : (
-																<Button
-																	className="full_width"
-																	size="lg"
-																	auto
-																	onPress={joinGame}
-																	disabled={!pairingData}
-																>
-																	JOIN GAME
-																</Button>
-															)}
-														</>
+													{$contractLoading ? (
+														<div className="full_width text_center">
+															<Loading type="points" size="xl" />
+														</div>
 													) : (
-														<Button className="full_width" size="lg" auto onPress={startGame}>
-															START GAME
+														<Button
+															className="full_width"
+															size="lg"
+															auto
+															onPress={joinGame}
+															disabled={!pairingData || !$gameStart}
+														>
+															JOIN GAME
 														</Button>
 													)}
 												</Grid>
@@ -372,10 +305,6 @@ const GameSelect: NextPage = () => {
 											elementum nisl accumsan. Duis posuere pretium placerat. Aliquam lacus diam, accumsan ac sem
 											elementum, venenatis rhoncus tellus. Nulla viverra accumsan magna quis imperdiet...
 										</Text>
-										<Spacer y={1} />
-										<Button className="full_width" size="lg" auto onPress={winGame}>
-											WIN GAME
-										</Button>
 									</Card.Body>
 								</Card>
 							</Grid>

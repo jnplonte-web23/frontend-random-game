@@ -50,7 +50,7 @@ const CustomNavbar = (props: IProps) => {
 
 	const checkIfActive = useCallback(
 		(_route: string): boolean => {
-			return $router.pathname === `/${_route}`;
+			return ($router.pathname || '').indexOf(`/${_route}`) >= 0;
 		},
 		[$router]
 	);
@@ -111,12 +111,12 @@ const CustomNavbar = (props: IProps) => {
 						</Link>
 					</Navbar.Brand>
 					<Navbar.Content activeColor="primary" hideIn="xs" variant="underline">
-						<Navbar.Link key="desktopGame" isActive={checkIfActive('game')} href="/game">
+						<Navbar.Link color="inherit" key="desktopGame" isActive={checkIfActive('game')} href="/game">
 							<span className="no_break">GAME</span>
 						</Navbar.Link>
 					</Navbar.Content>
 					<Navbar.Collapse>
-						<Navbar.CollapseItem key="desktopGame" activeColor="primary" isActive={checkIfActive('game')}>
+						<Navbar.CollapseItem key="mobileGame" activeColor="primary" isActive={checkIfActive('game')}>
 							<Link href="/game">
 								<span className="no_break">GAME</span>
 							</Link>
@@ -141,16 +141,23 @@ const CustomNavbar = (props: IProps) => {
 								</Dropdown.Trigger>
 							</Navbar.Item>
 							<Dropdown.Menu color="primary">
-								<Dropdown.Item textValue="profile" key="profile" css={{ height: '$18' }}>
-									<Text color="inherit">BALANCE: {$balance}</Text>
-									<Text color="inherit">
+								<Dropdown.Item key="balance">
+									<Text>BALANCE: {$balance}</Text>
+								</Dropdown.Item>
+								<Dropdown.Item key="account">
+									<Text>
 										ACCOUNT ID: {pairingData?.accountIds && pairingData?.accountIds.reduce($helper.conCatAccounts)}
 									</Text>
 								</Dropdown.Item>
-								<Dropdown.Item textValue="logout" key="logout" withDivider color="error">
-									<Button light onPress={handleClick}>
-										LOGOUT
-									</Button>
+								<Dropdown.Item key="admin" withDivider>
+									<Link color="inherit" href="/admin">
+										ADMIN
+									</Link>
+								</Dropdown.Item>
+								<Dropdown.Item key="logout" withDivider>
+									<Link color="error" onPress={handleClick}>
+										SIGN OUT
+									</Link>
 								</Dropdown.Item>
 							</Dropdown.Menu>
 						</Dropdown>
