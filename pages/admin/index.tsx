@@ -98,6 +98,7 @@ const Admin: NextPage = () => {
 		const xwin1Response = await win1Response.getRecord($$client);
 		const xxwin1Response = await xwin1Response.contractFunctionResult;
 		if (xxwin1Response) {
+			console.log(xwin1Response.transactionId.toString(), '<<<<');
 			// const x: any = xxwin1Response.getBytes32(0);
 			// console.log(web3.utils.toAscii(x), '<<<');
 			// xxwin1Response.logs.forEach((log) => {
@@ -105,7 +106,6 @@ const Admin: NextPage = () => {
 			// 	let logStringHex = '0x'.concat(Buffer.from(log.data).toString('hex'));
 			// 	console.log(logStringHex);
 			// });
-			// console.log(xwin1Response.transactionId.toString(), '<<<<');
 			// console.log(xwin1Response, _count);
 
 			// const tokenIdSolidityAddr = xxwin1Response.getAddress(0);
