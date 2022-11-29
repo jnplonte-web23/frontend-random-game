@@ -1,6 +1,6 @@
 {
 	"name": "random-game",
-	"description": "random game front-end",
+	"description": "random game front end",
 	"version": "1.0.0",
 	"main": "index.js",
 	"private": true,
@@ -45,6 +45,6 @@
 		"eslint-config-next": "13.0.3"
 	},
 	"engines": {
-		"node": "^16.17"
+		"node": "^16"
 	}
 }
