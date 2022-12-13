@@ -100,16 +100,17 @@ const GameSelect: NextPage = () => {
 			$setGameStart(xxgameResponse.getBool(0));
 		}
 
-		// const priceTransaction = new ContractExecuteTransaction()
-		// 	.setContractId(CONTRACTID)
-		// 	.setGas(3000000)
-		// 	.setFunction('getPrice');
-		// const priceResponse = await priceTransaction.execute($$client);
-		// const xpriceResponse = await priceResponse.getRecord($$client);
-		// const xxpriceResponse = await xpriceResponse.contractFunctionResult;
-		// if (xxpriceResponse) {
-		// 	$setPrice(Number(xxpriceResponse.getUint256(0)));
-		// }
+		const priceTransaction = new ContractExecuteTransaction()
+			.setContractId(CONTRACTID)
+			.setGas(3000000)
+			.setFunction('getPrice');
+		const priceResponse = await priceTransaction.execute($$client);
+		const xpriceResponse = await priceResponse.getRecord($$client);
+		const xxpriceResponse = await xpriceResponse.contractFunctionResult;
+		if (xxpriceResponse) {
+			$setPrice(Number(xxpriceResponse.getUint256(0)));
+		}
+
 		// const playerLimitTransaction = new ContractExecuteTransaction()
 		// 	.setContractId(CONTRACTID)
 		// 	.setGas(3000000)
@@ -156,7 +157,7 @@ const GameSelect: NextPage = () => {
 			const playerTransaction = new ContractExecuteTransaction()
 				.setContractId(CONTRACTID)
 				.setGas(300000)
-				.setPayableAmount(new Hbar(100))
+				.setPayableAmount(new Hbar(($price / 1e8) * Number($numberOfEntries)))
 				.setFunction('setPlayerData', param)
 				.freezeWithSigner(signer);
 
@@ -238,7 +239,7 @@ const GameSelect: NextPage = () => {
 											<Card.Divider />
 											<Spacer y={1} />
 											<Text b h3>
-												JOINING FEE: 100 HBAR
+												JOINING FEE: {$price / 1e8} HBAR
 											</Text>
 											<Spacer y={3} />
 											<Grid.Container gap={2}>
