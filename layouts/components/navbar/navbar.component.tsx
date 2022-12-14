@@ -26,6 +26,7 @@ const CustomNavbar = (props: IProps) => {
 
 	const [$visible, $setVisible] = useState(false);
 	const [$balance, $setBalance] = useState<number>(0);
+	const [$accountId, $setAccountId] = useState('');
 
 	const getBalance = async () => {
 		const accountId: string =
@@ -61,6 +62,9 @@ const CustomNavbar = (props: IProps) => {
 	useEffect(() => {
 		if (pairingData) {
 			getBalance();
+			if (pairingData.accountIds) {
+				$setAccountId(pairingData.accountIds.reduce($helper.conCatAccounts).toString());
+			}
 		}
 
 		// eslint-disable-next-line
@@ -144,16 +148,17 @@ const CustomNavbar = (props: IProps) => {
 								<Dropdown.Item key="balance">
 									<Text>BALANCE: {$balance}</Text>
 								</Dropdown.Item>
-								<Dropdown.Item key="account">
-									<Text>
-										ACCOUNT ID: {pairingData?.accountIds && pairingData?.accountIds.reduce($helper.conCatAccounts)}
-									</Text>
-								</Dropdown.Item>
-								<Dropdown.Item key="admin" withDivider>
-									<Link color="inherit" href="/admin">
-										ADMIN
-									</Link>
-								</Dropdown.Item>
+								{$accountId && $accountId === process.env.NEXT_PUBLIC_TEST_ACCOUNT ? (
+									<Dropdown.Item key="admin" withDivider>
+										<Link color="inherit" href="/admin">
+											ADMIN
+										</Link>
+									</Dropdown.Item>
+								) : (
+									<Dropdown.Item key="account">
+										<Text>ACCOUNT ID: {$accountId}</Text>
+									</Dropdown.Item>
+								)}
 								<Dropdown.Item key="logout" withDivider>
 									<Link color="error" onPress={handleClick}>
 										SIGN OUT

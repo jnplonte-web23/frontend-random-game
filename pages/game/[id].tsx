@@ -79,7 +79,7 @@ const GameSelect: NextPage = () => {
 	const [$price, $setPrice] = useState<number>(0);
 	const [$address, $setAddress] = useState<string>('');
 	const [$numberOfEntries, $setNumberOfEntries] = useState<number>(1);
-	const [$referalAddress, $setReferalAddress] = useState<string>(process.env.NEXT_PUBLIC_TEST_ACCOUNT || '');
+	const [$referalAddress, $setReferalAddress] = useState<string>('');
 
 	const handleChangeNumberOfEntries = (_event: any) => {
 		$setNumberOfEntries(Number(_event.target.value));
@@ -93,9 +93,9 @@ const GameSelect: NextPage = () => {
 			.setContractId(CONTRACTID)
 			.setGas(3000000)
 			.setFunction('isGameStart');
-		const gameResponse = await gameTransaction.execute($$client);
-		const xgameResponse = await gameResponse.getRecord($$client);
-		const xxgameResponse = await xgameResponse.contractFunctionResult;
+		const gameResponse: any = await gameTransaction.execute($$client);
+		const xgameResponse: any = await gameResponse.getRecord($$client);
+		const xxgameResponse: any = await xgameResponse.contractFunctionResult;
 		if (xxgameResponse) {
 			$setGameStart(xxgameResponse.getBool(0));
 		}
@@ -104,24 +104,12 @@ const GameSelect: NextPage = () => {
 			.setContractId(CONTRACTID)
 			.setGas(3000000)
 			.setFunction('getPrice');
-		const priceResponse = await priceTransaction.execute($$client);
-		const xpriceResponse = await priceResponse.getRecord($$client);
-		const xxpriceResponse = await xpriceResponse.contractFunctionResult;
+		const priceResponse: any = await priceTransaction.execute($$client);
+		const xpriceResponse: any = await priceResponse.getRecord($$client);
+		const xxpriceResponse: any = await xpriceResponse.contractFunctionResult;
 		if (xxpriceResponse) {
 			$setPrice(Number(xxpriceResponse.getUint256(0)));
 		}
-
-		// const playerLimitTransaction = new ContractExecuteTransaction()
-		// 	.setContractId(CONTRACTID)
-		// 	.setGas(3000000)
-		// 	.setFunction('getPlayerLimit');
-		// const playerLimitResponse = await playerLimitTransaction.execute($$client);
-		// const xplayerLimitResponse = await playerLimitResponse.getRecord($$client);
-		// const xxplayerLimitResponse = await xplayerLimitResponse.contractFunctionResult;
-		// if (xxplayerLimitResponse) {
-		// 	$setPlayerLimit(Number(xxplayerLimitResponse.getUint256(0)));
-		// }
-		// getPlayerCount();
 	};
 
 	// const getPlayerCount = async () => {
@@ -147,7 +135,9 @@ const GameSelect: NextPage = () => {
 
 			const param = new ContractFunctionParameters();
 			param.addUint8(Number($numberOfEntries));
-			if ($helper.isNotEmpty($referalAddress)) {
+			if ($helper.isEmpty($referalAddress)) {
+				param.addAddress('0x0000000000000000000000000000000000000000');
+			} else {
 				const addr = AccountId.fromString($referalAddress).toString();
 				const addrArr = addr.split('.');
 				const addrNum = new AccountId(parseInt(addrArr[0]), parseInt(addrArr[1]), parseInt(addrArr[3]));
@@ -227,7 +217,7 @@ const GameSelect: NextPage = () => {
 										RANDOM GAME {id}
 									</Text>
 									<Text h4 color="white">
-										PLAYERS JOIN: 35 / 100
+										PLAYERS JOIN: 0 / 100
 									</Text>
 									<Card>
 										<Card.Body>
