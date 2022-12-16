@@ -1,7 +1,7 @@
 import type { NextPage } from 'next';
 import { useEffect, useState, useMemo } from 'react';
 
-import { Container, Grid, Spacer, Button, Input } from '@nextui-org/react';
+import { Container, Grid, Spacer, Button, Input, Collapse, Text } from '@nextui-org/react';
 import { toast } from 'react-toastify';
 
 import Head from 'next/head';
@@ -224,122 +224,144 @@ const Admin: NextPage = () => {
 					'loading...'
 				) : (
 					<Container className="container">
-						{$accountId && $accountId === process.env.NEXT_PUBLIC_TEST_ACCOUNT ? (
-							<>
-								<Grid.Container gap={2}>
-									<Grid xs={12} lg={3}>
-										<Spacer y={1} />
-										<Button className="full_width" size="lg" auto onPress={startGame} disabled={$gameStart}>
-											START GAME
-										</Button>
-									</Grid>
-									<Grid xs={12} lg={3}>
-										<Spacer y={1} />
-										<Button
-											className="full_width"
-											size="lg"
-											auto
-											onPress={winGame}
-											disabled={$currentPlayers === 0 || $currentPlayers < $numberOfWinners}
-										>
-											SELECT GAME WINNER
-										</Button>
-									</Grid>
-									<Grid xs={12} lg={6}>
-										<Spacer y={1} />
-										<Button className="full_width" size="lg" auto onPress={() => getWinner()}>
-											CHECK LATEST GAME WINNERS
-										</Button>
-									</Grid>
-								</Grid.Container>
-								<Grid.Container gap={2}>
-									<Grid xs={12} lg={3}>
-										<Spacer y={1} />
-										<Input
-											aria-label="numberOfPlayers"
-											min="1"
-											width="100%"
-											bordered
-											labelPlaceholder="number of players"
-											type="number"
-											value={$numberOfPlayers}
-											onChange={handleChangeNumberOfPlayers}
-										/>
-									</Grid>
-									<Grid xs={12} lg={3}>
-										<Spacer y={1} />
-										<Input
-											aria-label="numberOfWinners"
-											min="1"
-											max="3"
-											width="100%"
-											bordered
-											labelPlaceholder="number of winners"
-											type="number"
-											value={$numberOfWinners}
-											onChange={handleChangeNumberOfWinners}
-										/>
-									</Grid>
-									<Grid xs={12} lg={6}>
-										<Spacer y={1} />
-										<Input
-											aria-label="winner1"
-											width="100%"
-											bordered
-											labelPlaceholder="winner 1"
-											readOnly
-											value={$winner1}
-										/>
-										<Spacer y={1} />
-										<Input
-											aria-label="winner2"
-											width="100%"
-											bordered
-											labelPlaceholder="winner 2"
-											readOnly
-											value={$winner2}
-										/>
-										<Spacer y={1} />
-										<Input
-											aria-label="winner3"
-											width="100%"
-											bordered
-											labelPlaceholder="winner 3"
-											readOnly
-											value={$winner3}
-										/>
-									</Grid>
-								</Grid.Container>
-								<Grid.Container gap={2}>
-									<Grid xs={12} lg={3}>
-										<Spacer y={1} />
-										<Input
-											aria-label="currentPlayers"
-											width="100%"
-											bordered
-											labelPlaceholder="current players"
-											readOnly
-											type="number"
-											value={$currentPlayers}
-										/>
-									</Grid>
-									<Grid xs={12} lg={3}></Grid>
-									<Grid xs={12} lg={6}></Grid>
-								</Grid.Container>
-								<Grid.Container gap={2}>
-									<Grid xs={12} lg={3}>
-										<Spacer y={1} />
-										<Button className="full_width" size="lg" auto onPress={stopGame} disabled={!$gameStart}>
-											STOP GAME
-										</Button>
-									</Grid>
-									<Grid xs={12} lg={3}></Grid>
-									<Grid xs={12} lg={6}></Grid>
-								</Grid.Container>
-							</>
-						) : (
-							''
-						)}
+						<Collapse.Group>
+							<Collapse
+								title="GAME 1"
+								subtitle="lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dolor dui"
+							>
+								{$accountId && $accountId === process.env.NEXT_PUBLIC_TEST_ACCOUNT ? (
+									<>
+										<Grid.Container gap={2}>
+											<Grid xs={12} lg={3}>
+												<Spacer y={1} />
+												<Button className="full_width" size="lg" auto onPress={startGame} disabled={$gameStart}>
+													START GAME
+												</Button>
+											</Grid>
+											<Grid xs={12} lg={3}>
+												<Spacer y={1} />
+												<Button
+													className="full_width"
+													size="lg"
+													auto
+													onPress={winGame}
+													disabled={$currentPlayers === 0 || $currentPlayers < $numberOfWinners}
+												>
+													SELECT GAME WINNER
+												</Button>
+											</Grid>
+											<Grid xs={12} lg={6}>
+												<Spacer y={1} />
+												<Button className="full_width" size="lg" auto onPress={() => getWinner()}>
+													CHECK LATEST GAME WINNERS
+												</Button>
+											</Grid>
+										</Grid.Container>
+										<Grid.Container gap={2}>
+											<Grid xs={12} lg={3}>
+												<Spacer y={1} />
+												<Input
+													aria-label="numberOfPlayers"
+													min="1"
+													width="100%"
+													bordered
+													labelPlaceholder="number of players"
+													type="number"
+													value={$numberOfPlayers}
+													onChange={handleChangeNumberOfPlayers}
+												/>
+											</Grid>
+											<Grid xs={12} lg={3}>
+												<Spacer y={1} />
+												<Input
+													aria-label="numberOfWinners"
+													min="1"
+													max="3"
+													width="100%"
+													bordered
+													labelPlaceholder="number of winners"
+													type="number"
+													value={$numberOfWinners}
+													onChange={handleChangeNumberOfWinners}
+												/>
+											</Grid>
+											<Grid xs={12} lg={6}>
+												<Spacer y={1} />
+												<Input
+													aria-label="winner1"
+													width="100%"
+													bordered
+													labelPlaceholder="winner 1"
+													readOnly
+													value={$winner1}
+												/>
+												<Spacer y={1} />
+												<Input
+													aria-label="winner2"
+													width="100%"
+													bordered
+													labelPlaceholder="winner 2"
+													readOnly
+													value={$winner2}
+												/>
+												<Spacer y={1} />
+												<Input
+													aria-label="winner3"
+													width="100%"
+													bordered
+													labelPlaceholder="winner 3"
+													readOnly
+													value={$winner3}
+												/>
+											</Grid>
+										</Grid.Container>
+										<Grid.Container gap={2}>
+											<Grid xs={12} lg={3}>
+												<Spacer y={1} />
+												<Input
+													aria-label="currentPlayers"
+													width="100%"
+													bordered
+													labelPlaceholder="current players"
+													readOnly
+													type="number"
+													value={$currentPlayers}
+												/>
+											</Grid>
+											<Grid xs={12} lg={3}></Grid>
+											<Grid xs={12} lg={6}></Grid>
+										</Grid.Container>
+										<Grid.Container gap={2}>
+											<Grid xs={12} lg={3}>
+												<Spacer y={1} />
+												<Button className="full_width" size="lg" auto onPress={stopGame} disabled={!$gameStart}>
+													STOP GAME
+												</Button>
+											</Grid>
+											<Grid xs={12} lg={3}></Grid>
+											<Grid xs={12} lg={6}></Grid>
+										</Grid.Container>
+									</>
+								) : (
+									''
+								)}
+							</Collapse>
+							<Collapse title="GAME 2" subtitle="lorem ipsum dolor sit amet, consectetur adipiscing">
+								<Text>COMMING SOON ...</Text>
+							</Collapse>
+							<Collapse
+								title="GAME 3"
+								subtitle="lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed dolor dui Sed dolor dui"
+							>
+								<Text>COMMING SOON ...</Text>
+							</Collapse>
+							<Collapse title="GAME 4" subtitle="lorem ipsum dolor sit amet">
+								<Text>COMMING SOON ...</Text>
+							</Collapse>
+							<Collapse title="GAME 5" subtitle="lorem ipsum dolor sit amet Sed dolor dui">
+								<Text>COMMING SOON ...</Text>
+							</Collapse>
+						</Collapse.Group>
 					</Container>
 				)}
 			</main>
